@@ -1,12 +1,8 @@
-
 name: Package and release
 on:
     push:
         tags:
             - '**'
-    workflow_dispatch: # on button click
-
-
 jobs:
     release:
         runs-on: ubuntu-latest
@@ -19,5 +15,3 @@ jobs:
                   fetch-depth: 0
             - name: Package and release
               uses: BigWigsMods/packager@v2
-            - name: Create Release
-              uses: ncipollo/release-action@v1.11.1  
