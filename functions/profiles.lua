@@ -4,6 +4,7 @@
 	local _detalhes = 		_G._detalhes
 	local Loc = LibStub("AceLocale-3.0"):GetLocale ( "Details" )
 	local _
+	local addonName, Details222 = ...
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Profiles:
@@ -849,15 +850,12 @@ local default_profile = {
 		},
 
 		["EVOKER"] = {
-			--0.31764705882353, -- [1]
-			--0.24313725490196, -- [2]
-			--0.91372549019608, -- [3]
 			--0.2000,
 			--0.4980,
 			--0.5764,
-			0.20000001788139,
-			0.57647061347961,
-			0.49803924560547,
+			0.2000,
+			0.5764,
+			0.4980,
 		},
 	},
 
@@ -867,6 +865,7 @@ local default_profile = {
 		friendlyfire = "darkorange",
 		cooldown = "yellow",
 		debuff = "purple",
+		buff = "silver",
 	},
 
 	fade_speed = 0.15,
@@ -1105,7 +1104,9 @@ local default_profile = {
 			fontcolor = {1, 1, 1, 1},
 			fontcolor_right = {1, 0.7, 0, 1}, --{1, 0.9254, 0.6078, 1}
 			fontshadow = false,
-			background = {0.1960, 0.1960, 0.1960, 0.8697},
+			bar_color = {0.3960, 0.3960, 0.3960, 0.8700},
+			background = {0.0941, 0.0941, 0.0941, 0.8},
+			divisor_color = {1, 1, 1, 1},
 			abbreviation = 2, -- 2 = ToK I Upper 5 = ToK I Lower -- was 8
 			maximize_method = 1,
 			show_amount = false,
@@ -1140,11 +1141,11 @@ local default_profile = {
 			line_height = 17,
 		},
 
-	--new window
-		all_in_one_windows = {
-			
-		},
+	--new window system
+	all_in_one_windows = {},
 
+	--auto show overall data in dynamic mode
+	auto_swap_to_dynamic_overall = false,
 }
 
 _detalhes.default_profile = default_profile
@@ -1157,11 +1158,44 @@ local default_player_data = {
 			last_coach_name = false,
 		},
 
+		--this is used by the new data capture for charts
+		data_harvest_for_charsts = {
+			players = {
+				--damage done by each player
+				{
+					name = "Damage of Each Individual Player",
+					combatObjectContainer = 1,
+					playerOnly = true,
+					playerKey = "total",
+				},
+			},
+
+			totals = {
+				--total damage done by the raid group
+				{
+					name = "Damage of All Player Combined",
+					combatObjectSubTableName = "totals",
+					combatObjectSubTableKey = 1,
+				},
+			},
+		},
+
+		data_harvested_for_charts = {},
+
+
 	--ocd tracker test
 		ocd_tracker = {
 			enabled = false,
 			cooldowns = {},
-			pos = {},
+			frames = {
+				["defensive-raid"] = {},
+				["defensive-target"] = {},
+				["defensive-personal"] = {},
+				["ofensive"] = {},
+				["utility"] = {},
+				["main"] = {}, --any cooldown that does not have a frame is shown on main frame
+			}, --panels for each cooldown type
+
 			show_conditions = {
 				only_in_group = true,
 				only_inside_instance = true,
@@ -1175,11 +1209,23 @@ local default_player_data = {
 				["defensive-personal"] = false,
 				["ofensive"] = true,
 				["utility"] = false,
+			}, --when creating a filter, add it here and also add to 'own_frame'
+
+			own_frame = {
+				["defensive-raid"] = false,
+				["defensive-target"] = false,
+				["defensive-personal"] = false,
+				["ofensive"] = false,
+				["utility"] = false,
 			},
+
 			width = 120,
 			height = 18,
 			lines_per_column = 12,
 		},
+
+	--mythic plus log
+		mythic_plus_log = {},
 
 	--force all fonts to have this outline
 		force_font_outline = "",
@@ -1300,7 +1346,9 @@ local default_global_data = {
 		immersion_unit_special_icons = true, --custom icons for specific units
 		immersion_pets_on_solo_play = false, --pets showing when solo play
 		damage_scroll_auto_open = true,
-		damage_scroll_position = {},
+		damage_scroll_position = {
+			scale = 1,
+		},
 		data_wipes_exp = {
 			["9"] = false,
 			["10"] = false,
@@ -1311,6 +1359,20 @@ local default_global_data = {
 		},
 		current_exp_raid_encounters = {},
 		installed_skins_cache = {},
+
+		show_warning_id1 = true,
+		show_warning_id1_amount = 0,
+
+		combat_id_global = 0,
+
+		slash_me_used = false,
+		trinket_data = {},
+
+		merge_pet_abilities = false,
+		merge_player_abilities = false,
+
+		played_class_time = true,
+		check_stuttering = true,
 
 	--spell category feedback
 		spell_category_savedtable = {},
@@ -1385,7 +1447,7 @@ local default_global_data = {
 		},
 
 	--auras (wa auras created from the aura panel)
-		details_auras = {},
+		details_auras = {}, --deprecated due to major security wa code revamp
 
 	--ilvl
 		item_level_pool = {},
@@ -1409,11 +1471,12 @@ local default_global_data = {
 		npcid_pool = {},
 
 	--aura creation frame libwindow
-		createauraframe = {},
+		createauraframe = {}, --deprecated
 
 	--min health done on the death report
 		deathlog_healingdone_min = 1,
 		deathlog_healingdone_min_arena = 400,
+		deathlog_line_height = 16,
 
 	--mythic plus config
 		mythic_plus = {
@@ -1648,7 +1711,6 @@ local exportProfileBlacklist = {
 	active_profile = true,
 	SoloTablesSaved = true,
 	RaidTablesSaved = true,
-	savedStyles = true,
 	benchmark_db = true,
 	rank_window = true,
 	last_realversion = true,
